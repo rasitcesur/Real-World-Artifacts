@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Manufacturing Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#12151c;
+    --surface:#1b1f29;
+    --surface-2:#212635;
+    --surface-3:#262c3d;
+    --border:#2b3142;
+    --border-light:#3a4157;
+    --text:#e9ebf0;
+    --text-dim:#9aa2b6;
+    --text-faint:#6b7387;
+    --accent:#4c7ea8;
+    --accent-light:#71a4cc;
+    --amber:#e8a33d;
+    --red:#e1584f;
+    --red-soft:rgba(225,88,79,.14);
+    --green:#4caf7d;
+    --header-h:68px;
+    --sidebar-w:264px;
+    --fixed-w:1040px;
+    --radius:10px;
+    --radius-sm:6px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(1100px 620px at 84% -10%, rgba(76,126,168,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 100%, rgba(232,163,61,.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, input{font-family:inherit;}
+  ::-webkit-scrollbar{height:10px;width:10px;}
+  ::-webkit-scrollbar-track{background:var(--surface);}
+  ::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+
+  .app{
+    display:grid;
+    grid-template-columns:var(--sidebar-w) 1fr;
+    grid-template-rows:var(--header-h) 1fr;
+    grid-template-areas:"header header" "sidebar content";
+    min-height:100vh;
+  }
+
+  /* ---------- HEADER ---------- */
+  .header{
+    grid-area:header;
+    display:flex;
+    align-items:center;
+    gap:22px;
+    padding:0 22px;
+    background:var(--surface);
+    border-bottom:2px solid var(--border);
+  }
+  .brand{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .brand img{
+    width:40px;height:40px;
+    border-radius:9px;
+    display:block;
+    background:var(--bg);
+  }
+  .brand-text{font-size:19px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;}
+  .brand-text span{color:var(--accent-light);}
+
+  .search{
+    flex:1;
+    max-width:420px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:9px;
+    padding:9px 14px;
+    transition:border-color .15s ease;
+  }
+  .search:focus-within{border-color:var(--accent);}
+  .search svg{flex-shrink:0;opacity:.6;}
+  .search input{
+    background:transparent;border:0;outline:0;color:var(--text);
+    font-size:14px;width:100%;
+  }
+  .search input::placeholder{color:var(--text-faint);}
+
+  .header-right{margin-left:auto;position:relative;flex-shrink:0;}
+  .user-btn{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:9px;
+    padding:6px 12px 6px 6px;
+    cursor:pointer;
+    color:var(--text);
+  }
+  .user-btn:hover{border-color:var(--border-light);}
+  .user-avatar{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(150deg,var(--accent),#325a7c);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .user-meta{text-align:left;line-height:1.2;}
+  .user-name{font-size:13px;font-weight:700;}
+  .user-role{font-size:11px;color:var(--text-dim);}
+  .user-btn .chev{opacity:.6;transition:transform .15s ease;}
+  .user-btn.open .chev{transform:rotate(180deg);}
+
+  .user-popup{
+    position:absolute;
+    top:calc(100% + 10px);
+    right:0;
+    width:220px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:10px;
+    padding:8px;
+    box-shadow:0 18px 40px rgba(0,0,0,.45);
+    opacity:0;
+    transform:translateY(-6px);
+    pointer-events:none;
+    transition:opacity .14s ease, transform .14s ease;
+    z-index:60;
+  }
+  .user-popup.visible{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .popup-item{
+    display:flex;align-items:center;gap:10px;
+    width:100%;background:transparent;border:0;
+    color:var(--text);font-size:13.5px;font-weight:600;
+    padding:10px 10px;border-radius:7px;cursor:pointer;text-align:left;
+  }
+  .popup-item svg{opacity:.7;flex-shrink:0;}
+  .popup-item:hover{background:var(--surface-3);}
+  .popup-item.danger{color:#f2938c;}
+  .popup-item.danger svg{opacity:.9;}
+  .popup-divider{height:1px;background:var(--border);margin:6px 4px;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    grid-area:sidebar;
+    background:var(--surface);
+    border-right:2px solid var(--border);
+    overflow-y:auto;
+    padding:14px 10px 20px;
+  }
+  .nav-group{margin-bottom:4px;}
+  .nav-head{
+    display:flex;align-items:center;gap:11px;
+    width:100%;background:transparent;border:0;
+    color:var(--text);padding:12px 12px;
+    font-size:14px;font-weight:700;letter-spacing:.1px;
+    border-radius:8px;cursor:pointer;
+  }
+  .nav-head:hover{background:var(--surface-2);}
+  .nav-group.active .nav-head{background:var(--surface-2);color:var(--accent-light);}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;color:var(--text-dim);}
+  .nav-group.active .nav-icon{color:var(--accent-light);}
+  .nav-head .chev{margin-left:auto;flex-shrink:0;transition:transform .18s ease;opacity:.6;}
+  .nav-group.open .nav-head .chev{transform:rotate(90deg);}
+
+  .nav-sub{
+    max-height:0;overflow:hidden;
+    transition:max-height .22s ease;
+  }
+  .nav-group.open .nav-sub{max-height:320px;}
+  .nav-sub a{
+    display:block;
+    padding:9px 12px 9px 44px;
+    font-size:13.5px;
+    color:var(--text-dim);
+    text-decoration:none;
+    border-radius:7px;
+    border-left:2px solid transparent;
+    margin:1px 4px;
+  }
+  .nav-sub a:hover{color:var(--text);background:var(--surface-2);}
+  .nav-sub a.active{
+    color:var(--text);
+    background:var(--surface-3);
+    border-left:2px solid var(--accent);
+    font-weight:700;
+  }
+
+  /* ---------- CONTENT ---------- */
+  .content{
+    grid-area:content;
+    overflow-y:auto;
+    padding:26px 30px 40px;
+  }
+  .fixed-block{max-width:var(--fixed-w);}
+
+  .section-title{
+    font-size:15px;font-weight:800;color:var(--text);
+    margin:0 0 14px;letter-spacing:.1px;
+  }
+  .overdue-title{
+    font-size:32px;
+    font-weight:800;
+    color:var(--red);
+    letter-spacing:-.6px;
+    margin:0 0 16px;
+  }
+
+  .overdue-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:34px;
+  }
+  .task-card{
+    position:relative;
+    background:var(--surface);
+    border:2px solid var(--border);
+    border-left:4px solid var(--red);
+    border-radius:var(--radius);
+    padding:16px 16px 14px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .task-card:hover{
+    transform:translateY(-3px);
+    border-color:var(--red);
+    background:var(--surface-2);
+    box-shadow:0 0 0 1px rgba(225,88,79,.35), 0 14px 30px -6px rgba(225,88,79,.45), 0 0 26px rgba(225,88,79,.28);
+  }
+  .task-name{font-size:14.5px;font-weight:700;margin:0 0 10px;line-height:1.35;}
+  .task-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+  .task-meta-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-dim);}
+  .task-meta-row svg{opacity:.65;flex-shrink:0;}
+  .task-foot{display:flex;align-items:center;justify-content:space-between;}
+  .overdue-badge{
+    display:inline-flex;align-items:center;gap:5px;
+    background:var(--red-soft);color:#f2938c;
+    font-size:11.5px;font-weight:700;
+    padding:4px 9px;border-radius:20px;
+  }
+  .task-wc{font-size:11.5px;color:var(--text-faint);font-weight:600;}
+
+  /* ---------- GANTT ---------- */
+  .gantt-wrapper{
+    background:var(--surface);
+    border:2px solid var(--border);
+    border-radius:var(--radius);
+    margin-bottom:34px;
+    overflow:hidden;
+  }
+  .gantt-scroll{
+    overflow:auto;
+    max-height:420px;
+  }
+  .gantt-inner{
+    display:grid;
+    grid-template-columns:230px 1fr;
+  }
+  .gantt-labels{
+    position:sticky;left:0;z-index:5;
+    background:var(--surface);
+    border-right:2px solid var(--border);
+  }
+  .gantt-label-head{
+    height:38px;display:flex;align-items:center;
+    padding:0 14px;font-size:11.5px;font-weight:700;
+    color:var(--text-faint);
+    background:var(--surface-2);
+    border-bottom:2px solid var(--border);
+    position:sticky;top:0;z-index:6;
+  }
+  .gantt-label-row{
+    height:38px;display:flex;flex-direction:column;justify-content:center;
+    padding:0 14px;border-bottom:1px solid var(--border);
+  }
+  .gantt-label-row .name{font-size:12.5px;font-weight:700;line-height:1.2;}
+  .gantt-label-row .wc{font-size:10.5px;color:var(--text-faint);}
+  .gantt-label-row.overdue .name{color:#f2a29c;}
+
+  .gantt-chart{position:relative;}
+  .gantt-daybar{
+    display:grid;
+    height:38px;
+    background:var(--surface-2);
+    border-bottom:2px solid var(--border);
+    position:sticky;top:0;z-index:4;
+  }
+  .gantt-daybar div{
+    display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:700;color:var(--text-faint);
+    border-right:1px solid var(--border);
+  }
+  .gantt-row-bg{
+    display:grid;
+    height:38px;
+    border-bottom:1px solid var(--border);
+    position:relative;
+  }
+  .gantt-row-bg div{border-right:1px solid var(--border);}
+  .gantt-row-bg.stripe{background:rgba(255,255,255,.012);}
+
+  .gantt-bar{
+    position:absolute;
+    top:7px;height:24px;
+    border-radius:6px;
+    display:flex;align-items:center;
+    padding:0 10px;
+    font-size:11px;font-weight:700;
+    color:#0d1117;
+    white-space:nowrap;overflow:hidden;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+    transition:filter .15s ease, transform .15s ease;
+    cursor:pointer;
+  }
+  .gantt-bar:hover{filter:brightness(1.12);transform:translateY(-1px);}
+  .gantt-bar.overdue{background:linear-gradient(180deg,#eb6d64,var(--red));color:#fff;}
+  .gantt-bar.ontrack{background:linear-gradient(180deg,var(--accent-light),var(--accent));color:#0d1117;}
+
+  .today-line{
+    position:absolute;top:0;bottom:0;width:2px;
+    background:var(--amber);z-index:3;
+  }
+  .today-tag{
+    position:absolute;top:6px;
+    background:var(--amber);color:#1a1206;
+    font-size:10px;font-weight:800;
+    padding:2px 6px;border-radius:5px;
+    transform:translateX(-50%);
+    white-space:nowrap;
+  }
+
+  /* ---------- KPI ---------- */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+  }
+  .kpi-card{
+    background:var(--surface);
+    border:2px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+    cursor:pointer;
+    transition:border-color .15s ease, transform .15s ease, background .15s ease;
+  }
+  .kpi-card:hover{border-color:var(--accent);transform:translateY(-2px);background:var(--surface-2);}
+  .kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .kpi-label{font-size:12.5px;font-weight:700;color:var(--text-dim);}
+  .kpi-trend{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+  .kpi-trend.up{color:#8fd4ac;background:rgba(76,175,125,.14);}
+  .kpi-trend.down{color:#f2938c;background:var(--red-soft);}
+  .kpi-body{display:flex;align-items:center;gap:16px;}
+  .kpi-value{font-size:28px;font-weight:800;letter-spacing:-.5px;}
+  .kpi-unit{font-size:13px;color:var(--text-faint);font-weight:600;}
+
+  .donut{width:64px;height:64px;flex-shrink:0;}
+  .spark{flex:1;height:40px;display:flex;align-items:flex-end;gap:4px;}
+  .spark div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;opacity:.85;}
+  .spark div:last-child{background:var(--amber);opacity:1;}
+
+  /* ---------- MODAL ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;
+    background:rgba(6,8,12,.6);
+    backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;
+    transition:opacity .15s ease;
+    z-index:100;
+  }
+  .modal-backdrop.visible{opacity:1;}
+  .modal-box{
+    width:420px;max-width:88vw;
+    background:var(--surface-2);
+    border:2px solid var(--border-light);
+    border-radius:12px;
+    padding:22px 22px 18px;
+    transform:scale(.96);
+    transition:transform .15s ease;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal-backdrop.visible .modal-box{transform:scale(1);}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .modal-title{font-size:16px;font-weight:800;}
+  .modal-value{font-size:13px;color:var(--accent-light);font-weight:700;}
+  .modal-sub{font-size:12px;color:var(--text-faint);margin-bottom:16px;}
+  .modal-rows{display:flex;flex-direction:column;gap:10px;}
+  .modal-row{display:flex;align-items:center;gap:12px;}
+  .modal-row .rlabel{width:150px;font-size:12.5px;color:var(--text-dim);flex-shrink:0;}
+  .modal-row .rtrack{flex:1;height:8px;background:var(--surface-3);border-radius:5px;overflow:hidden;}
+  .modal-row .rfill{height:100%;border-radius:5px;background:var(--accent);}
+  .modal-row .rval{width:44px;text-align:right;font-size:12.5px;font-weight:700;flex-shrink:0;}
+
+  @media (max-width: 1180px){
+    .overdue-grid{grid-template-columns:repeat(2,1fr);}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div id="header-placeholder"></div>
+
+  <!-- SIDEBAR -->
+  <div id="menu-placeholder"></div>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <h1 class="overdue-title fixed-block">Overdue Tasks</h1>
+
+    <div class="overdue-grid fixed-block">
+      <div class="task-card">
+        <p class="task-name">PC Assembly &ndash; Batch #2214 (CPU / GPU Install)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 13
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Assembly Line A
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">3 days overdue</span>
+          <span class="task-wc">WO-2214</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Workstation Build &ndash; Order #5590 (Final QC)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 14
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            QC Station 2
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">2 days overdue</span>
+          <span class="task-wc">WO-5590</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Server Rack Assembly &ndash; Unit #118 (Cable Routing)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 12
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Assembly Line B
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">4 days overdue</span>
+          <span class="task-wc">WO-0118</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Custom Gaming PC &ndash; Order #3342 (BIOS Configuration)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 15
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Test Bench 1
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">1 day overdue</span>
+          <span class="task-wc">WO-3342</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Mini PC Assembly &ndash; Order #4108 (Thermal Paste &amp; Cooler Fit)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 11
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Assembly Line C
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">5 days overdue</span>
+          <span class="task-wc">WO-4108</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Workstation Build &ndash; Order #4477 (Memory &amp; Storage Install)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 12
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Assembly Line A
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">4 days overdue</span>
+          <span class="task-wc">WO-4477</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Custom PC &ndash; Order #4590 (Cable Management)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 14
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Assembly Line B
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">2 days overdue</span>
+          <span class="task-wc">WO-4590</span>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <p class="task-name">Server Build &ndash; Unit #221 (Firmware Update &amp; Burn-in Test)</p>
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Due Sep 15
+          </div>
+          <div class="task-meta-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Test Bench 2
+          </div>
+        </div>
+        <div class="task-foot">
+          <span class="overdue-badge">1 day overdue</span>
+          <span class="task-wc">WO-0221</span>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Current Schedule</h2>
+    <div class="gantt-wrapper">
+      <div class="gantt-scroll">
+        <div class="gantt-inner" id="ganttInner">
+          <!-- built by JS -->
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Performance Metrics</h2>
+    <div class="kpi-grid fixed-block">
+
+      <div class="kpi-card" data-kpi="availability">
+        <div class="kpi-top">
+          <span class="kpi-label">Availability</span>
+          <span class="kpi-trend up">+1.4%</span>
+        </div>
+        <div class="kpi-body">
+          <svg class="donut" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#262c3d" stroke-width="4"></circle>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#4c7ea8" stroke-width="4" stroke-linecap="round"
+              stroke-dasharray="97.4 97.4" stroke-dashoffset="12.66" transform="rotate(-90 18 18)"></circle>
+            <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="800" fill="#e9ebf0">87%</text>
+          </svg>
+          <div><div class="kpi-value">87<span class="kpi-unit">%</span></div></div>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-kpi="utilization">
+        <div class="kpi-top">
+          <span class="kpi-label">Utilization</span>
+          <span class="kpi-trend down">-2.1%</span>
+        </div>
+        <div class="kpi-body">
+          <svg class="donut" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#262c3d" stroke-width="4"></circle>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#e8a33d" stroke-width="4" stroke-linecap="round"
+              stroke-dasharray="97.4 97.4" stroke-dashoffset="23.4" transform="rotate(-90 18 18)"></circle>
+            <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="800" fill="#e9ebf0">76%</text>
+          </svg>
+          <div><div class="kpi-value">76<span class="kpi-unit">%</span></div></div>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-kpi="wip">
+        <div class="kpi-top">
+          <span class="kpi-label">Work in Process</span>
+          <span class="kpi-trend up">+3 units</span>
+        </div>
+        <div class="kpi-body">
+          <div class="spark">
+            <div style="height:35%"></div><div style="height:52%"></div><div style="height:44%"></div>
+            <div style="height:68%"></div><div style="height:58%"></div><div style="height:80%"></div>
+            <div style="height:100%"></div>
+          </div>
+          <div><div class="kpi-value">24<span class="kpi-unit">jobs</span></div></div>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-kpi="leadtime">
+        <div class="kpi-top">
+          <span class="kpi-label">Manufacturing Lead Time</span>
+          <span class="kpi-trend down">-0.3d</span>
+        </div>
+        <div class="kpi-body">
+          <div class="spark">
+            <div style="height:70%"></div><div style="height:62%"></div><div style="height:66%"></div>
+            <div style="height:54%"></div><div style="height:50%"></div><div style="height:46%"></div>
+            <div style="height:40%"></div>
+          </div>
+          <div><div class="kpi-value">4.6<span class="kpi-unit">days</span></div></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- KPI DETAIL MODAL -->
+<div class="modal-backdrop" id="kpiModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle">Availability</span>
+      <span class="modal-value" id="modalValue">87%</span>
+    </div>
+    <p class="modal-sub" id="modalSub">Breakdown by machine, last 7 days</p>
+    <div class="modal-rows" id="modalRows"></div>
+  </div>
+</div>
+
+<script>
+document.startViewTransition(() => {
+
+  // ---------- Load external header (title.html) & menu (menu.html) fragments ----------
+  function initHeaderAndMenu(){
+    // Sidebar accordion
+    document.querySelectorAll('[data-group]').forEach(group=>{
+      group.querySelector('.nav-head').addEventListener('click', ()=>{
+        const isOpen = group.classList.contains('open');
+        document.querySelectorAll('[data-group]').forEach(g=>{
+          g.classList.remove('open');
+          g.querySelector('.nav-sub').style.maxHeight = null;
+        });
+        if(!isOpen){
+          group.classList.add('open');
+          group.querySelector('.nav-sub').style.maxHeight = '320px';
+        }
+      });
+    });
+
+    // User popup
+    const userBtn = document.getElementById('userBtn');
+    const userPopup = document.getElementById('userPopup');
+    userBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      userBtn.classList.toggle('open');
+      userPopup.classList.toggle('visible');
+    });
+    document.addEventListener('click', (e)=>{
+      if(!userPopup.contains(e.target) && !userBtn.contains(e.target)){
+        userPopup.classList.remove('visible');
+        userBtn.classList.remove('open');
+      }
+    });
+  }
+
+  Promise.all([
+    fetch('title.html').then(r => r.text()),
+    fetch('menu.html').then(r => r.text())
+  ]).then(([headerHtml, menuHtml]) => {
+    document.getElementById('header-placeholder').outerHTML = headerHtml;
+    document.getElementById('menu-placeholder').outerHTML = menuHtml;
+    initHeaderAndMenu();
+  });
+
+  // ---------- Gantt chart ----------
+  const DAY_W = 52;
+  const dayLabels = ["Sep 6","Sep 7","Sep 8","Sep 9","Sep 10","Sep 11","Sep 12","Sep 13","Sep 14","Sep 15",
+                      "Sep 16","Sep 17","Sep 18","Sep 19","Sep 20","Sep 21","Sep 22","Sep 23","Sep 24",
+                      "Sep 25","Sep 26","Sep 27","Sep 28"];
+  const TODAY_IDX = 10; // Sep 16
+
+  const tasks = [
+    {name:"PC Assembly \u2013 Batch #2214", wc:"Assembly Line A", start:2, dur:6, overdue:true},
+    {name:"Workstation Build \u2013 #5590", wc:"QC Station 2", start:3, dur:6, overdue:true},
+    {name:"Server Rack Assembly \u2013 #118", wc:"Assembly Line B", start:1, dur:6, overdue:true},
+    {name:"Custom Gaming PC \u2013 #3342", wc:"Test Bench 1", start:4, dur:6, overdue:true},
+    {name:"Mini PC Assembly \u2013 #4108", wc:"Assembly Line C", start:0, dur:6, overdue:true},
+    {name:"Workstation Build \u2013 #4477", wc:"Assembly Line A", start:1, dur:6, overdue:true},
+    {name:"Custom PC \u2013 #4590", wc:"Assembly Line B", start:3, dur:6, overdue:true},
+    {name:"Server Build \u2013 Unit #221", wc:"Test Bench 2", start:4, dur:6, overdue:true},
+    {name:"Mini-ITX Build \u2013 #3350", wc:"Assembly Line A", start:10, dur:3, overdue:false},
+    {name:"Rackmount Server \u2013 #3351", wc:"Assembly Line B", start:10, dur:5, overdue:false},
+    {name:"Workstation Build \u2013 #3352", wc:"Assembly Line A", start:11, dur:3, overdue:false},
+    {name:"Gaming PC \u2013 #3353", wc:"Test Bench 1", start:12, dur:4, overdue:false},
+    {name:"AI Workstation \u2013 #3355", wc:"Assembly Line A", start:13, dur:6, overdue:false},
+    {name:"Server Rack Assembly \u2013 #3356", wc:"Assembly Line B", start:15, dur:5, overdue:false},
+    {name:"Final Testing Batch \u2013 #3360", wc:"QC Station 2", start:18, dur:5, overdue:false},
+  ];
+
+  const cols = dayLabels.length;
+  const inner = document.getElementById('ganttInner');
+
+  const labelsCol = document.createElement('div');
+  labelsCol.className = 'gantt-labels';
+  labelsCol.innerHTML = '<div class="gantt-label-head">Job / Work Order</div>' +
+    tasks.map(t=>`<div class="gantt-label-row ${t.overdue?'overdue':''}"><span class="name">${t.name}</span><span class="wc">${t.wc}</span></div>`).join('');
+  inner.appendChild(labelsCol);
+
+  const chart = document.createElement('div');
+  chart.className = 'gantt-chart';
+  chart.style.width = (cols*DAY_W)+'px';
+
+  const daybar = document.createElement('div');
+  daybar.className = 'gantt-daybar';
+  daybar.style.gridTemplateColumns = `repeat(${cols}, ${DAY_W}px)`;
+  daybar.innerHTML = dayLabels.map(d=>`<div>${d}</div>`).join('');
+  chart.appendChild(daybar);
+
+  tasks.forEach((t,i)=>{
+    const row = document.createElement('div');
+    row.className = 'gantt-row-bg' + (i%2? ' stripe':'');
+    row.style.gridTemplateColumns = `repeat(${cols}, ${DAY_W}px)`;
+    row.innerHTML = dayLabels.map(()=>'<div></div>').join('');
+
+    const bar = document.createElement('div');
+    bar.className = 'gantt-bar ' + (t.overdue ? 'overdue' : 'ontrack');
+    bar.style.left = (t.start*DAY_W + 3) + 'px';
+    bar.style.width = (t.dur*DAY_W - 6) + 'px';
+    bar.textContent = t.name;
+    bar.title = t.name + ' \u00b7 ' + t.wc;
+    row.appendChild(bar);
+    chart.appendChild(row);
+  });
+
+  const todayLine = document.createElement('div');
+  todayLine.className = 'today-line';
+  todayLine.style.left = (TODAY_IDX*DAY_W) + 'px';
+  todayLine.style.height = ((tasks.length+1)*38)+'px';
+  chart.appendChild(todayLine);
+
+  const todayTag = document.createElement('div');
+  todayTag.className = 'today-tag';
+  todayTag.style.left = (TODAY_IDX*DAY_W) + 'px';
+  todayTag.textContent = 'Today';
+  chart.appendChild(todayTag);
+
+  inner.appendChild(chart);
+  inner.style.gridTemplateColumns = '230px ' + (cols*DAY_W) + 'px';
+
+  window.addEventListener('load', ()=>{
+    inner.style.width = '100%';
+  });
+
+  // ---------- KPI modal ----------
+  const kpiData = {
+    availability: {
+      title:'Availability', value:'87%', sub:'Breakdown by machine \u00b7 last 7 days',
+      rows:[
+        ['CNC Router 01', 92], ['SMT Line 02', 81], ['Reflow Oven', 88], ['Test Bench 1', 85]
+      ]
+    },
+    utilization: {
+      title:'Utilization', value:'76%', sub:'Breakdown by work center \u00b7 last 7 days',
+      rows:[
+        ['Assembly Line A', 82], ['Assembly Line B', 74], ['QC Station 2', 68], ['Test Bench 1', 79]
+      ]
+    },
+    wip: {
+      title:'Work in Process', value:'24 jobs', sub:'Breakdown by production stage',
+      rows:[
+        ['Kitting', 25], ['Assembly', 42], ['Quality Control', 21], ['Packaging', 12]
+      ]
+    },
+    leadtime: {
+      title:'Manufacturing Lead Time', value:'4.6 days', sub:'Average time by stage',
+      rows:[
+        ['Kitting', 17], ['Assembly', 46], ['Quality Control', 22], ['Packaging', 15]
+      ]
+    }
+  };
+
+  const modal = document.getElementById('kpiModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalValue = document.getElementById('modalValue');
+  const modalSub = document.getElementById('modalSub');
+  const modalRows = document.getElementById('modalRows');
+
+  document.querySelectorAll('.kpi-card').forEach(card=>{
+    const key = card.getAttribute('data-kpi');
+    const d = kpiData[key];
+    card.addEventListener('mouseenter', ()=>{
+      modalTitle.textContent = d.title;
+      modalValue.textContent = d.value;
+      modalSub.textContent = d.sub;
+      modalRows.innerHTML = d.rows.map(r=>`
+        <div class="modal-row">
+          <span class="rlabel">${r[0]}</span>
+          <span class="rtrack"><span class="rfill" style="width:${r[1]}%"></span></span>
+          <span class="rval">${r[1]}%</span>
+        </div>`).join('');
+      modal.classList.add('visible');
+    });
+    card.addEventListener('mouseleave', ()=>{
+      modal.classList.remove('visible');
+    });
+  });
+
+}); // end Chromium-only startViewTransition wrapper
+</script>
+</body>
+</html>
