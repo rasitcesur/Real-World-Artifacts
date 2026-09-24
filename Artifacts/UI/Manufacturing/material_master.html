@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Material Master</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#12151c;
+    --surface:#1b1f29;
+    --surface-2:#212635;
+    --surface-3:#262c3d;
+    --border:#2b3142;
+    --border-light:#3a4157;
+    --text:#e9ebf0;
+    --text-dim:#9aa2b6;
+    --text-faint:#6b7387;
+    --accent:#4c7ea8;
+    --accent-light:#71a4cc;
+    --amber:#e8a33d;
+    --red:#e1584f;
+    --red-soft:rgba(225,88,79,.14);
+    --green:#4caf7d;
+    --header-h:68px;
+    --sidebar-w:264px;
+    --fixed-w:1040px;
+    --radius:10px;
+    --radius-sm:6px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(1100px 620px at 84% -10%, rgba(76,126,168,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 100%, rgba(232,163,61,.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, input{font-family:inherit;}
+  ::-webkit-scrollbar{height:10px;width:10px;}
+  ::-webkit-scrollbar-track{background:var(--surface);}
+  ::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+
+  .app{
+    display:grid;
+    grid-template-columns:var(--sidebar-w) 1fr;
+    grid-template-rows:var(--header-h) 1fr;
+    grid-template-areas:"header header" "sidebar content";
+    min-height:100vh;
+  }
+
+  /* ---------- HEADER ---------- */
+  .header{
+    grid-area:header;
+    display:flex;
+    align-items:center;
+    gap:22px;
+    padding:0 22px;
+    background:var(--surface);
+    border-bottom:2px solid var(--border);
+  }
+  .brand{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .brand img{
+    width:40px;height:40px;
+    border-radius:9px;
+    display:block;
+    background:var(--bg);
+  }
+  .brand-text{font-size:19px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;}
+  .brand-text span{color:var(--accent-light);}
+
+  .search{
+    flex:1;
+    max-width:420px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:9px;
+    padding:9px 14px;
+    transition:border-color .15s ease;
+  }
+  .search:focus-within{border-color:var(--accent);}
+  .search svg{flex-shrink:0;opacity:.6;}
+  .search input{
+    background:transparent;border:0;outline:0;color:var(--text);
+    font-size:14px;width:100%;
+  }
+  .search input::placeholder{color:var(--text-faint);}
+
+  .header-right{margin-left:auto;position:relative;flex-shrink:0;}
+  .user-btn{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:9px;
+    padding:6px 12px 6px 6px;
+    cursor:pointer;
+    color:var(--text);
+  }
+  .user-btn:hover{border-color:var(--border-light);}
+  .user-avatar{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(150deg,var(--accent),#325a7c);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .user-meta{text-align:left;line-height:1.2;}
+  .user-name{font-size:13px;font-weight:700;}
+  .user-role{font-size:11px;color:var(--text-dim);}
+  .user-btn .chev{opacity:.6;transition:transform .15s ease;}
+  .user-btn.open .chev{transform:rotate(180deg);}
+
+  .user-popup{
+    position:absolute;
+    top:calc(100% + 10px);
+    right:0;
+    width:220px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:10px;
+    padding:8px;
+    box-shadow:0 18px 40px rgba(0,0,0,.45);
+    opacity:0;
+    transform:translateY(-6px);
+    pointer-events:none;
+    transition:opacity .14s ease, transform .14s ease;
+    z-index:60;
+  }
+  .user-popup.visible{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .popup-item{
+    display:flex;align-items:center;gap:10px;
+    width:100%;background:transparent;border:0;
+    color:var(--text);font-size:13.5px;font-weight:600;
+    padding:10px 10px;border-radius:7px;cursor:pointer;text-align:left;
+  }
+  .popup-item svg{opacity:.7;flex-shrink:0;}
+  .popup-item:hover{background:var(--surface-3);}
+  .popup-item.danger{color:#f2938c;}
+  .popup-item.danger svg{opacity:.9;}
+  .popup-divider{height:1px;background:var(--border);margin:6px 4px;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    grid-area:sidebar;
+    background:var(--surface);
+    border-right:2px solid var(--border);
+    overflow-y:auto;
+    padding:14px 10px 20px;
+  }
+  .nav-group{margin-bottom:4px;}
+  .nav-head{
+    display:flex;align-items:center;gap:11px;
+    width:100%;background:transparent;border:0;
+    color:var(--text);padding:12px 12px;
+    font-size:14px;font-weight:700;letter-spacing:.1px;
+    border-radius:8px;cursor:pointer;
+  }
+  .nav-head:hover{background:var(--surface-2);}
+  .nav-group.active .nav-head{background:var(--surface-2);color:var(--accent-light);}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;color:var(--text-dim);}
+  .nav-group.active .nav-icon{color:var(--accent-light);}
+  .nav-head .chev{margin-left:auto;flex-shrink:0;transition:transform .18s ease;opacity:.6;}
+  .nav-group.open .nav-head .chev{transform:rotate(90deg);}
+
+  .nav-sub{
+    max-height:0;overflow:hidden;
+    transition:max-height .22s ease;
+  }
+  .nav-group.open .nav-sub{max-height:320px;}
+  .nav-sub a{
+    display:block;
+    padding:9px 12px 9px 44px;
+    font-size:13.5px;
+    color:var(--text-dim);
+    text-decoration:none;
+    border-radius:7px;
+    border-left:2px solid transparent;
+    margin:1px 4px;
+  }
+  .nav-sub a:hover{color:var(--text);background:var(--surface-2);}
+  .nav-sub a.active{
+    color:var(--text);
+    background:var(--surface-3);
+    border-left:2px solid var(--accent);
+    font-weight:700;
+  }
+
+  /* ---------- CONTENT ---------- */
+  .content{
+    grid-area:content;
+    overflow-y:auto;
+    padding:26px 30px 40px;
+  }
+  .fixed-block{max-width:var(--fixed-w);}
+
+  .section-title{
+    font-size:15px;font-weight:800;color:var(--text);
+    margin:0 0 14px;letter-spacing:.1px;
+  }
+
+  /* ---------- FORM CARD ---------- */
+  .form-card{
+    background:var(--surface);
+    border:2px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    margin-bottom:22px;
+  }
+  .form-card-title{
+    font-size:13px;font-weight:800;
+    color:var(--text);
+    margin:0 0 18px;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px 20px;
+  }
+  .form-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+  .field-block{margin-bottom:0;}
+  .field-label{
+    display:block;
+    font-size:12px;font-weight:700;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+  .field-hint{
+    font-size:11px;color:var(--text-faint);
+    margin-top:6px;
+  }
+  select.styled-select,
+  input.styled-input{
+    width:100%;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    padding:10px 12px;
+    font-size:13px;
+    outline:0;
+    appearance:none;
+  }
+  select.styled-select{
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%239aa2b6" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>');
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    padding-right:34px;
+  }
+  select.styled-select:focus,
+  input.styled-input:focus{border-color:var(--accent);}
+  input.styled-input::placeholder{color:var(--text-faint);}
+
+  .inline-field-group{display:flex;gap:10px;}
+  .inline-field-group .styled-input{flex:1;}
+  .inline-field-group .styled-select{width:110px;flex-shrink:0;}
+
+  .icon-btn{
+    width:34px;height:34px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:8px;
+    color:var(--text-faint);
+    cursor:pointer;
+    transition:color .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .icon-btn:hover{color:var(--red);border-color:var(--red);background:var(--red-soft);}
+
+  .add-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:transparent;
+    border:2px dashed var(--border-light);
+    color:var(--accent-light);
+    font-size:12.5px;font-weight:700;
+    padding:9px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background .12s ease, border-color .12s ease;
+  }
+  .add-btn:hover{background:rgba(113,164,204,.08);border-color:var(--accent);}
+
+  /* ---------- UNITS OF MEASURE ---------- */
+  .unit-add-row{display:flex;gap:10px;align-items:stretch;}
+  .unit-add-row select{flex:1;}
+  .unit-tag-list{
+    display:flex;flex-wrap:wrap;gap:9px;
+    margin-top:14px;
+  }
+  .unit-tag{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--surface-2);
+    border:2px solid var(--border);
+    border-radius:20px;
+    padding:6px 8px 6px 14px;
+    font-size:12.5px;font-weight:700;
+    color:var(--text);
+  }
+  .unit-tag.base-unit{border-color:var(--accent);color:var(--accent-light);}
+  .unit-tag button{
+    width:17px;height:17px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;border:0;border-radius:50%;
+    color:var(--text-faint);cursor:pointer;font-size:12px;line-height:1;
+  }
+  .unit-tag button:hover{background:var(--red-soft);color:var(--red);}
+  .unit-empty-hint{
+    font-size:12.5px;color:var(--text-faint);
+    margin-top:14px;
+  }
+
+  .matrix-wrapper{margin-top:20px;overflow-x:auto;}
+  table.matrix-table{border-collapse:collapse;font-size:12px;}
+  .matrix-table th, .matrix-table td{
+    padding:0;
+    text-align:center;
+    border:1px solid var(--border);
+  }
+  .matrix-table th{
+    background:var(--surface-2);
+    color:var(--text-dim);
+    font-weight:700;
+    font-size:11.5px;
+    padding:9px 12px;
+    white-space:nowrap;
+  }
+  .matrix-table th.corner{background:var(--surface);}
+  .matrix-cell{
+    width:88px;height:38px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .matrix-cell.diagonal{background:var(--surface-3);color:var(--text-faint);font-weight:700;}
+  .matrix-cell.readonly{background:rgba(255,255,255,.02);color:var(--text-faint);font-weight:600;}
+  .matrix-cell input{
+    width:100%;height:100%;
+    background:transparent;
+    border:0;outline:0;
+    text-align:center;
+    color:var(--text);
+    font-size:12.5px;font-weight:700;
+  }
+  .matrix-cell input:focus{background:rgba(113,164,204,.10);}
+
+  /* ---------- BARCODES ---------- */
+  .barcode-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .barcode-row:last-child{margin-bottom:0;}
+  .barcode-row .styled-input{flex:1;}
+  .barcode-list{margin-bottom:16px;}
+
+  /* ---------- ATTRIBUTES ---------- */
+  .attribute-add-row{
+    display:grid;
+    grid-template-columns:1fr 1fr auto;
+    gap:10px;
+    align-items:end;
+    margin-bottom:18px;
+  }
+  .attribute-add-row .styled-input.custom-name{margin-top:8px;}
+  table.attributes-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .attributes-table thead th{
+    text-align:left;
+    padding:10px 12px;
+    background:var(--surface-2);
+    border-bottom:2px solid var(--border);
+    font-size:11px;font-weight:700;color:var(--text-dim);
+  }
+  .attributes-table tbody td{
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+    color:var(--text);
+    font-weight:700;
+  }
+  .attributes-table tbody tr:last-child td{border-bottom:0;}
+  .attributes-table td.col-remove{width:40px;text-align:center;}
+  .attr-empty{padding:20px 12px;text-align:center;color:var(--text-faint);font-size:12.5px;font-weight:400;}
+
+  /* ---------- TOP BAR ---------- */
+  .mm-topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .mm-topbar-left{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .back-link{
+    display:inline-flex;align-items:center;gap:5px;
+    color:var(--text-dim);
+    font-size:12.5px;font-weight:700;
+    text-decoration:none;
+    padding:6px 4px;
+    border-right:1px solid var(--border);
+    padding-right:14px;
+  }
+  .back-link:hover{color:var(--accent-light);}
+  .mm-status{
+    font-size:11.5px;font-weight:700;
+    color:var(--text-faint);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:4px 12px;
+  }
+  .mm-status.editing{color:var(--accent-light);border-color:var(--accent);}
+  .mm-topbar-actions{display:flex;align-items:center;gap:10px;}
+
+  .btn-outline{
+    display:inline-flex;align-items:center;gap:8px;
+    background:transparent;
+    border:2px solid var(--border-light);
+    color:var(--text-dim);
+    font-size:13px;font-weight:700;
+    padding:10px 18px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .12s ease, color .12s ease, background .12s ease;
+  }
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent-light);}
+  .btn-outline-danger:hover{border-color:var(--red);color:var(--red);background:var(--red-soft);}
+  .btn-outline:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-outline:disabled:hover{border-color:var(--border-light);color:var(--text-dim);background:transparent;}
+
+  /* ---------- SAVE ACTION ---------- */
+  .save-btn{
+    display:inline-flex;align-items:center;gap:9px;
+    background:var(--accent);
+    color:#0d1117;
+    border:0;
+    font-size:13.5px;font-weight:800;
+    padding:12px 26px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .save-btn:hover{background:var(--accent-light);}
+  /* Stock lookup keeps the current material in context. */
+  .content{min-width:0;}
+  .mm-topbar-actions{flex-wrap:wrap;}
+  .mm-topbar-left{min-width:0;}
+  .mm-status{max-width:100%;overflow-wrap:anywhere;}
+  .stock-search-btn{color:var(--accent-light);border-color:var(--accent);}
+  .material-message{padding:12px 16px;margin:-6px 0 20px;border:1px solid var(--green);border-radius:8px;color:#a5ddbe;background:rgba(76,175,125,.08);font-size:13px;overflow-wrap:anywhere;}
+  .material-message[data-tone="error"]{border-color:var(--red);color:#f5aca6;background:var(--red-soft);}
+  .stock-dialog{width:min(1000px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--border-light);border-radius:14px;background:var(--surface);color:var(--text);box-shadow:0 28px 90px #0008;}
+  .stock-dialog::backdrop{background:rgba(5,9,16,.74);backdrop-filter:blur(3px);}
+  .stock-dialog[open]{display:flex;flex-direction:column;}
+  .stock-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:24px 26px 18px;flex-shrink:0;}
+  .stock-dialog-title{font-size:21px;letter-spacing:-.3px;margin:0 0 8px;}
+  .stock-dialog-description{font-size:13px;line-height:1.5;color:var(--text-dim);margin:0;}
+  .stock-dialog-close{font-size:22px;color:var(--text-dim);}
+  .stock-search-controls{padding:0 26px 18px;display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px;flex-shrink:0;}
+  .stock-input-wrap{position:relative;}
+  .stock-input-wrap svg{position:absolute;left:13px;top:13px;color:var(--text-dim);pointer-events:none;}
+  .stock-input-wrap input{padding-left:40px;}
+  .stock-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding:13px 26px;background:var(--surface-2);font-size:12px;color:var(--text-dim);flex-shrink:0;}
+  .stock-summary strong{color:var(--text);font-weight:700;}
+  .stock-table-scroll{overflow:auto;min-height:160px;}
+  .stock-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px;min-width:720px;}
+  .stock-table th{text-align:left;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);background:var(--surface);padding:13px 18px;border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:1;}
+  .stock-table td{padding:15px 18px;border-bottom:1px solid var(--border);vertical-align:middle;overflow-wrap:anywhere;line-height:1.5;}
+  .stock-table tr[data-stock-id]{cursor:pointer;transition:background .12s ease;}
+  .stock-table tr[data-stock-id]:hover,.stock-table tr[data-stock-id]:focus-within{background:var(--surface-3);}
+  .stock-table tr.current-stock{background:rgba(76,126,168,.10);box-shadow:inset 3px 0 var(--accent-light);}
+  .stock-select{font:inherit;font-weight:700;text-align:left;color:var(--accent-light);background:none;border:0;padding:0;cursor:pointer;overflow-wrap:anywhere;}
+  .stock-selected-label{display:block;font-size:10px;color:var(--green);margin-top:4px;}
+  .stock-table .stock-empty{text-align:center;padding:48px 24px;color:var(--text-dim);line-height:1.8;}
+  .stock-dialog-footer{padding:16px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--border);flex-shrink:0;}
+  .stock-pager{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-dim);}
+  .stock-pager .btn-outline{padding:7px 12px;font-size:12px;}
+  .stock-footer-note{margin:0;font-size:12px;color:var(--text-faint);}
+  button:focus-visible,a:focus-visible{outline:2px solid var(--accent-light);outline-offset:4px;}
+  body:has(.stock-dialog[open]){overflow:hidden;}
+  @media(max-width:1100px){
+    :root{--sidebar-w:210px;}
+    .content{padding:22px;}
+    .brand-text{font-size:16px;}
+  }
+  @media(max-width:760px){
+    .app{grid-template-columns:1fr;grid-template-areas:"header" "content";}
+    .sidebar{display:none;}
+    .header{padding:0 14px;gap:12px;}
+    .header .search,.user-meta,.user-btn .chev{display:none;}
+    .brand-text{font-size:15px;}
+    .header-right{margin-left:auto;}
+    .content{padding:20px 14px;}
+    .form-card{padding:18px 16px;}
+    .form-grid,.form-grid.cols-3{grid-template-columns:1fr;}
+    .attribute-add-row{grid-template-columns:minmax(0,1fr);}
+    .mm-topbar-actions{gap:8px;}
+    .mm-topbar-actions button{padding:10px 12px;font-size:12px;}
+    .stock-dialog-header{padding:20px 18px 16px;}
+    .stock-search-controls{grid-template-columns:1fr;padding:0 18px 18px;}
+    .stock-summary{padding:12px 18px;}
+    .stock-summary-hint{display:none;}
+    .stock-dialog-footer{padding:14px 18px;flex-wrap:wrap;}
+    .stock-footer-note{font-size:11px;}
+    .stock-pager{margin-left:auto;}
+    .inline-field-group .styled-input,.barcode-row .styled-input{min-width:0;}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div id="header-placeholder"></div>
+
+  <!-- SIDEBAR -->
+  <div id="menu-placeholder"></div>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <div class="fixed-block">
+      <div class="mm-topbar">
+        <div class="mm-topbar-left">
+          <h1 class="section-title" style="font-size:20px;margin:0;">Material Master</h1>
+          <span class="mm-status" id="mmStatus">New Material</span>
+        </div>
+        <div class="mm-topbar-actions">
+          <button type="button" class="btn-outline stock-search-btn" id="stockSearchBtn" aria-haspopup="dialog" aria-controls="stockSearchDialog">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-5-5"/></svg>
+            Stock Search
+          </button>
+          <button class="btn-outline" id="newMaterialBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New
+          </button>
+          <button class="btn-outline btn-outline-danger" id="deleteMaterialBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Delete
+          </button>
+          <button class="save-btn" id="saveMaterialBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save
+          </button>
+        </div>
+      </div>
+
+      <div class="material-message" id="materialMessage" role="status" aria-live="polite" hidden></div>
+
+      <!-- ============ GENERAL INFORMATION ============ -->
+      <div class="form-card">
+        <h2 class="form-card-title">General Information</h2>
+        <div class="form-grid">
+          <div class="field-block">
+            <label class="field-label" for="companySelect">Company</label>
+            <select class="styled-select" id="companySelect">
+              <option value="">Select company...</option>
+              <option>Main Plant</option>
+              <option>Plant 2 – East</option>
+              <option>Plant 3 – West</option>
+              <option>Contract Manufacturer</option>
+            </select>
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="skuNumber">SKU Number</label>
+            <input class="styled-input" type="text" id="skuNumber" placeholder="e.g. SKU-458291">
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="materialCode">Material Code *</label>
+            <input class="styled-input" type="text" id="materialCode" required placeholder="e.g. MAT-10234">
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="materialDescription">Material Description *</label>
+            <input class="styled-input" type="text" id="materialDescription" required placeholder="e.g. Cold-Rolled Steel Sheet 2mm">
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="valuationMethod">Valuation Method</label>
+            <select class="styled-select" id="valuationMethod">
+              <option value="">Select valuation method...</option>
+              <option>FIFO</option>
+              <option>LIFO</option>
+              <option>Moving Weighted Average</option>
+            </select>
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="lotSizingRule">Lot Sizing Rule</label>
+            <select class="styled-select" id="lotSizingRule">
+              <option value="">Select lot sizing rule...</option>
+              <option value="LOT_FOR_LOT">Lot-for-Lot</option>
+              <option value="FIXED_LOT_SIZE">Fixed Lot Size</option>
+              <option value="REPLENISH_TO_MAX">Replenish to Maximum Stock Level</option>
+              <option value="DAILY">Daily Lot Size</option>
+              <option value="WEEKLY">Weekly Lot Size</option>
+              <option value="MONTHLY">Monthly Lot Size</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ UNITS OF MEASURE ============ -->
+      <div class="form-card">
+        <h2 class="form-card-title">Units of Measure</h2>
+
+        <div class="unit-add-row">
+          <select class="styled-select" id="unitSelect" aria-label="Unit to add">
+            <option value="">Select unit...</option>
+            <option value="PC">Piece (PC)</option>
+            <option value="KG">Kilogram (KG)</option>
+            <option value="G">Gram (G)</option>
+            <option value="L">Liter (L)</option>
+            <option value="ML">Milliliter (ML)</option>
+            <option value="M">Meter (M)</option>
+            <option value="CM">Centimeter (CM)</option>
+            <option value="M2">Square Meter (M2)</option>
+            <option value="M3">Cubic Meter (M3)</option>
+            <option value="BOX">Box (BOX)</option>
+            <option value="PLT">Pallet (PLT)</option>
+            <option value="ROLL">Roll (ROLL)</option>
+            <option value="TON">Ton (TON)</option>
+          </select>
+          <button class="add-btn" id="addUnitBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Unit
+          </button>
+        </div>
+
+        <div class="unit-tag-list" id="unitTagList"></div>
+        <div class="unit-empty-hint" id="unitEmptyHint">No units added yet. The first unit added will be used as the base unit.</div>
+
+        <div class="matrix-wrapper" id="matrixWrapper" style="display:none;">
+          <label class="field-label" style="margin:20px 0 4px;">Unit Conversion Matrix</label>
+          <p class="field-hint" style="margin-bottom:12px;">Enter the multiplier for each row unit → column unit. The reverse conversion is calculated automatically.</p>
+          <table class="matrix-table" id="matrixTable"></table>
+        </div>
+      </div>
+
+      <!-- ============ BARCODES ============ -->
+      <div class="form-card">
+        <h2 class="form-card-title">Barcodes</h2>
+        <div class="barcode-list" id="barcodeList"></div>
+        <button class="add-btn" id="addBarcodeBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Barcode
+        </button>
+      </div>
+
+      <!-- ============ PHYSICAL PROPERTIES ============ -->
+      <div class="form-card">
+        <h2 class="form-card-title">Physical Properties</h2>
+        <div class="form-grid">
+          <div class="field-block">
+            <label class="field-label" for="volumeValue">Volume</label>
+            <div class="inline-field-group">
+              <input class="styled-input" type="number" min="0" step="any" id="volumeValue" placeholder="e.g. 0.045">
+              <select class="styled-select" id="volumeUnit" aria-label="Volume unit">
+              <option value="">Unit...</option>
+                <option value="CM3">cm³</option>
+                <option value="M3">m³</option>
+                <option value="L">L</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="weightValue">Weight</label>
+            <div class="inline-field-group">
+              <input class="styled-input" type="number" min="0" step="any" id="weightValue" placeholder="e.g. 12.5">
+              <select class="styled-select" id="weightUnit" aria-label="Weight unit">
+              <option value="">Unit...</option>
+                <option value="G">g</option>
+                <option value="KG">kg</option>
+                <option value="TON">ton</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ ATTRIBUTES ============ -->
+      <div class="form-card">
+        <h2 class="form-card-title">Attributes</h2>
+
+        <div class="attribute-add-row">
+          <div class="field-block">
+            <label class="field-label" for="attributeSelect">Attribute</label>
+            <select class="styled-select" id="attributeSelect">
+              <option value="">Select attribute...</option>
+              <option value="Length">Length</option>
+              <option value="Width">Width</option>
+              <option value="Height">Height</option>
+              <option value="Color">Color</option>
+              <option value="Pattern">Pattern</option>
+              <option value="Texture">Texture</option>
+              <option value="__custom__">Custom...</option>
+            </select>
+            <input class="styled-input custom-name" type="text" id="customAttributeName" aria-label="Custom attribute name" placeholder="Custom attribute name" style="display:none;">
+          </div>
+          <div class="field-block">
+            <label class="field-label" for="attributeValue">Value</label>
+            <input class="styled-input" type="text" id="attributeValue" placeholder="e.g. 480 mm / Matte Black / Herringbone">
+          </div>
+          <button class="add-btn" id="addAttributeBtn" style="height:41px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add
+          </button>
+        </div>
+
+        <table class="attributes-table">
+          <thead>
+            <tr>
+              <th>Attribute</th>
+              <th>Value</th>
+              <th class="col-remove"></th>
+            </tr>
+          </thead>
+          <tbody id="attributesTableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<dialog class="stock-dialog" id="stockSearchDialog" aria-labelledby="stockSearchTitle" aria-describedby="stockSearchDescription">
+  <div class="stock-dialog-header">
+    <div>
+      <h2 class="stock-dialog-title" id="stockSearchTitle">Stock Search</h2>
+      <p class="stock-dialog-description" id="stockSearchDescription">Find a stock and select its row to open all details in Material Master.</p>
+    </div>
+    <button type="button" class="icon-btn stock-dialog-close" id="closeStockSearchBtn" aria-label="Close stock search">&times;</button>
+  </div>
+  <div class="stock-search-controls">
+    <div>
+      <label class="field-label" for="stockSearchInput">Search stocks</label>
+      <div class="stock-input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-5-5"/></svg>
+        <input class="styled-input" id="stockSearchInput" type="search" placeholder="Material code, description, SKU or barcode..." autocomplete="off" autofocus>
+      </div>
+    </div>
+    <div>
+      <label class="field-label" for="stockCompanyFilter">Company</label>
+      <select class="styled-select" id="stockCompanyFilter"><option value="">All companies</option></select>
+    </div>
+  </div>
+  <div class="stock-summary">
+    <strong id="stockResultCount" role="status" aria-live="polite"></strong>
+    <span class="stock-summary-hint">Click a row to select &middot; Esc to close</span>
+  </div>
+  <div class="stock-table-scroll">
+    <table class="stock-table" aria-label="Stock search results">
+      <colgroup><col style="width:19%"><col style="width:31%"><col style="width:18%"><col style="width:22%"><col style="width:10%"></colgroup>
+      <thead><tr><th scope="col">Material code</th><th scope="col">Description</th><th scope="col">SKU number</th><th scope="col">Company</th><th scope="col">Unit</th></tr></thead>
+      <tbody id="stockResultsBody"></tbody>
+    </table>
+  </div>
+  <div class="stock-dialog-footer">
+    <p class="stock-footer-note">Saved stocks in this browser</p>
+    <div class="stock-pager">
+      <button type="button" class="btn-outline" id="stockPrevPage" aria-label="Previous results page">Previous</button>
+      <span id="stockPageLabel"></span>
+      <button type="button" class="btn-outline" id="stockNextPage" aria-label="Next results page">Next</button>
+    </div>
+  </div>
+</dialog>
+
+
+<template id="fallback-header">
+  <header class="header">
+    <div class="brand">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAAAEu0lEQVR4nO3dTU4bWxCG4SLKBCQmKMzYBMqC2EgkhJSNsKCIjWSGBEMyiFr8GffPOaer6qv3md57sdv9+mvbycUnF5dXLwY4+eZ9B1AbAcIVAcIVAcIVAcIVAcIVAcLVd88bPz0797x5vPH89Ohyu7sGSHBxfTw3ewW5S4CEl890zkaHODRAwstvdIhDAiQ8PaNC7P4umPi09T6/XQMkvhp6nucul2DCq6fXJbl5AYmvttbz3xQg8cGsrQP+KA6uNgfI+uGtrT1sCpD4cMiWLlYHSHw4Zm0fvAaEq1UBsn5YYk0nLCBcLQ6Q9cMaS3thAeFqUYCsH7ZY0g0LCFcECFcECFezAfL6Dy3m+mEB4YoA4YoA4YoA4YoA4YoA4YoA4YoA4cr19wPu4frm1vsuNHm4v/O+C0NJL2D2+Mw0juEY6QARn2yASsuhdCwfyQaIHCQDVFwMxWMyEw0QecgFqLoUZprHJhegOrUIpQJUOzkVSAVYhdITTSZApZNSiUSAFeNTOWaJAJHXycXl1cuxfyH6/5bZugTef9sk+/1f4thXOZRewAgnr/U+ZL8Upw4w+4OP5AG2iLB+k8ormDbAzA86XqUNsEWk9ZtUXcGUAWZ9sPFZugCVP7aouILpAlRXLcJUASqvX1WpAqyi0gqmCZD10yT/mxFa/fn9o/ln/Pz1d/V/83B/1/Sku765TfGkS7GAXuvXI76eP2etDJfiFAG2yLACX8l835cKH6DXs7j3am39eepvSMIH2KLCgmQXOkCV9Wv9ucorGDZAPnapIWyAXka/Y2UF3wsZYPaPXUbdjmKEIQNEHeECVF+/1ttTW8FwAaKWUAFWWb/W21VawVABop4wAVZbv9bbV1nBMAF6PaBb/qpUT1tvX+WD+jABoqZQAVZbwerrZxYsQNQTLsAqK8j6/RcuQDP9CInvVcgAUUfYAFVXkPV7L2yAnkZF6P2ZY0ShA1T5tL+V6vqZBQ+whyiXYq9Lb3ThA4z87M0g+uMXPkCz/G9IeOPxNX43zAzeOIyVYgHN6r0hqbB+ZokC7CFLhFnuZw+pAszyrPaW6XFKFaCZ/qW4yqV3ki5AaEkZoOoKVls/s6QB9hAtwmj3Zy9pA8z4bB8p6+ORNkAznUtxxUvvJHWAyC99gNlXsPL6mfFnwWbmH2Fl6RfQLP8KbKVw3BIBmmmcjDVUjlcmQOQkFaDKKsxROk6pAJGPXIBK63CI2vHJBYhcJANUW4mJ4nFJBmimd7LUjmciGyBykA5QZTVUjuMQ6QARn3yA2dcj+/2fc3JxefVy7F84PTvf675A1PPT45f/TH4BERsBwhUBwhUBwhUBwhUBwhUBwhUBwhUBwtVsgMc+xQbmzPXDAsIVAcIVAcLVogB5HYgtlnTDAsLV4gBZQayxtBcWEK5WBcgKYok1nbCAcLU6QFYQx6ztY9MCEiEO2dLF5kswEeKtrT3wGhCumgJkBWHW1kHzAhJhba3nv8v3hEx3gt+iUEev4en6GpA1rKHnee7+JoQItfU+v0O+qotLsp5RwzL0u+IIMb/RV7RdvqyQEPPZ66XUrt+W+fGgCDIOr9furl/XyhsW8EdxcEWAcEWAcEWAcEWAcEWAcPUPys2gnw5BmIEAAAAASUVORK5CYII=" alt="Company logo">
+      <div class="brand-text">Manufacturing <span>Dashboard</span></div>
+    </div>
+
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search orders, work centers, machines...">
+    </div>
+
+    <div class="header-right">
+      <button class="user-btn" id="userBtn">
+        <span class="user-avatar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e9ebf0" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        <span class="user-meta">
+          <span class="user-name" style="display:block;">Operations Manager</span>
+          <span class="user-role">Plant Floor 2</span>
+        </span>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+
+      <div class="user-popup" id="userPopup">
+        <button class="popup-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+        <div class="popup-divider"></div>
+        <button class="popup-item danger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log out
+        </button>
+      </div>
+    </div>
+  </header>
+</template>
+<template id="fallback-menu">
+  <nav class="sidebar" id="sidebar">
+
+    <div class="nav-group" data-group>
+      <button class="nav-head">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5z"/><path d="M3 7l9 5 9-5"/><path d="M12 22V12"/></svg>
+        Sales
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="#">Orders</a>
+        <a href="#">Reports</a>
+        <a href="#">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="nav-group" data-group>
+      <button class="nav-head">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Purchasing
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="#">Orders</a>
+        <a href="#">Reports</a>
+        <a href="#">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="nav-group open active" data-group>
+      <button class="nav-head">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        Manufacturing
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub" style="max-height:320px;">
+        <a href="#">Inventory</a>
+        <a href="#">BOM</a>
+        <a href="#">Warehouse</a>
+        <a href="#">Work Centers</a>
+        <a href="#">Machines</a>
+        <a href="#">Reports</a>
+        <a href="#" class="active">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="nav-group" data-group>
+      <button class="nav-head">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Finance &amp; Accounting
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="#">Invoice</a>
+        <a href="#">Bill</a>
+        <a href="#">Chart of Accounts</a>
+        <a href="#">Reports</a>
+        <a href="#">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="nav-group" data-group>
+      <button class="nav-head">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Human Resources
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="#">Employees</a>
+        <a href="#">Time &amp; Attendance</a>
+        <a href="#">Leave Management</a>
+        <a href="#">Salary Accrual</a>
+        <a href="#">Reports</a>
+        <a href="#">Dashboard</a>
+      </div>
+    </div>
+
+  </nav>
+</template>
+
+<script>
+(() => {
+
+  // ---------- Load external header (title.html) & menu (menu.html) fragments ----------
+  function initHeaderAndMenu(){
+    // Sidebar accordion
+    document.querySelectorAll('[data-group]').forEach(group=>{
+      group.querySelector('.nav-head').addEventListener('click', ()=>{
+        const isOpen = group.classList.contains('open');
+        document.querySelectorAll('[data-group]').forEach(g=>{
+          g.classList.remove('open');
+          g.querySelector('.nav-sub').style.maxHeight = null;
+        });
+        if(!isOpen){
+          group.classList.add('open');
+          group.querySelector('.nav-sub').style.maxHeight = '320px';
+        }
+      });
+    });
+
+    // User popup
+    const userBtn = document.getElementById('userBtn');
+    const userPopup = document.getElementById('userPopup');
+    userBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      userBtn.classList.toggle('open');
+      userPopup.classList.toggle('visible');
+    });
+    document.addEventListener('click', (e)=>{
+      if(!userPopup.contains(e.target) && !userBtn.contains(e.target)){
+        userPopup.classList.remove('visible');
+        userBtn.classList.remove('open');
+      }
+    });
+  }
+
+  function loadFragment(path, fallbackId){
+    const fallback = document.getElementById(fallbackId).innerHTML;
+    if(location.protocol === 'file:') return Promise.resolve(fallback);
+    return fetch(path).then(response => {
+      if(!response.ok) throw new Error('Fragment unavailable');
+      return response.text();
+    }).catch(() => fallback);
+  }
+  Promise.all([
+    loadFragment('title.html','fallback-header'),
+    loadFragment('menu.html','fallback-menu')
+  ]).then(([headerHtml, menuHtml]) => {
+    document.getElementById('header-placeholder').outerHTML = headerHtml;
+    document.getElementById('menu-placeholder').outerHTML = menuHtml;
+    document.getElementById('fallback-header').remove();
+    document.getElementById('fallback-menu').remove();
+    initHeaderAndMenu();
+    document.querySelectorAll('.sidebar .nav-sub a').forEach(link => {
+      link.classList.remove('active');
+      if(link.textContent.trim() === 'Inventory'){
+        link.classList.add('active');
+        link.href = 'material_master.html';
+        link.setAttribute('aria-current','page');
+        link.addEventListener('click', event => { event.preventDefault(); openStockSearch(); });
+      }
+    });
+  });
+
+  // ---------- Units of Measure ----------
+  const unitCatalog = {
+    PC:"Piece (PC)", KG:"Kilogram (KG)", G:"Gram (G)", L:"Liter (L)", ML:"Milliliter (ML)",
+    M:"Meter (M)", CM:"Centimeter (CM)", M2:"Square Meter (M2)", M3:"Cubic Meter (M3)",
+    BOX:"Box (BOX)", PLT:"Pallet (PLT)", ROLL:"Roll (ROLL)", TON:"Ton (TON)"
+  };
+
+  let units = []; // array of unit codes, in add order; units[0] = base unit
+  const factors = {}; // "A|B" -> manually entered multiplier for A -> B (A comes before B in units[])
+
+  const unitSelect = document.getElementById('unitSelect');
+  const addUnitBtn = document.getElementById('addUnitBtn');
+  const unitTagList = document.getElementById('unitTagList');
+  const unitEmptyHint = document.getElementById('unitEmptyHint');
+  const matrixWrapper = document.getElementById('matrixWrapper');
+  const matrixTable = document.getElementById('matrixTable');
+
+  function renderUnitTags(){
+    unitTagList.innerHTML = units.map((code, i) => `
+      <span class="unit-tag ${i===0 ? 'base-unit' : ''}" title="${i===0 ? 'Base unit' : ''}">
+        ${unitCatalog[code]}
+        <button data-remove-unit="${code}" aria-label="Remove ${code} unit">×</button>
+      </span>
+    `).join('');
+
+    unitTagList.querySelectorAll('[data-remove-unit]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const code = btn.getAttribute('data-remove-unit');
+        units = units.filter(u => u !== code);
+        Object.keys(factors).forEach(key=>{
+          if(key.split('|').includes(code)) delete factors[key];
+        });
+        renderUnitTags();
+        renderMatrix();
+      });
+    });
+
+    unitEmptyHint.style.display = units.length < 2 ? 'block' : 'none';
+    unitEmptyHint.textContent = units.length === 1
+      ? 'Add one more unit to generate the conversion matrix.'
+      : 'No units added yet. The first unit added will be used as the base unit.';
+  }
+
+  function formatFactor(n){
+    if(n === null || n === undefined || isNaN(n)) return '—';
+    const rounded = Math.round(n * 1e6) / 1e6;
+    return String(rounded);
+  }
+
+  function renderMatrix(){
+    if(units.length < 2){
+      matrixWrapper.style.display = 'none';
+      matrixTable.innerHTML = '';
+      return;
+    }
+    matrixWrapper.style.display = 'block';
+
+    let thead = '<thead><tr><th class="corner"></th>' +
+      units.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
+
+    let rows = '';
+    units.forEach((rowCode, i) => {
+      rows += `<tr><th>${rowCode}</th>`;
+      units.forEach((colCode, j) => {
+        if(i === j){
+          rows += `<td><div class="matrix-cell diagonal">1</div></td>`;
+        } else if(i < j){
+          const key = rowCode + '|' + colCode;
+          const val = factors[key];
+          rows += `<td><div class="matrix-cell">
+            <input type="number" step="any" placeholder="–"
+              data-from="${rowCode}" data-to="${colCode}" aria-label="${rowCode} to ${colCode} conversion factor"
+              value="${val !== undefined && val !== null ? val : ''}">
+          </div></td>`;
+        } else {
+          const mirrorKey = colCode + '|' + rowCode;
+          const mirrorVal = factors[mirrorKey];
+          const computed = (mirrorVal !== undefined && mirrorVal !== null && mirrorVal !== 0) ? (1 / mirrorVal) : null;
+          rows += `<td><div class="matrix-cell readonly" id="mirror-${colCode}-${rowCode}">${formatFactor(computed)}</div></td>`;
+        }
+      });
+      rows += '</tr>';
+    });
+
+    matrixTable.innerHTML = thead + '<tbody>' + rows + '</tbody>';
+
+    matrixTable.querySelectorAll('input[data-from]').forEach(input=>{
+      input.addEventListener('input', ()=>{
+        const from = input.getAttribute('data-from');
+        const to = input.getAttribute('data-to');
+        const raw = input.value.trim();
+        const num = raw === '' ? null : parseFloat(raw);
+        factors[from + '|' + to] = (num === null || isNaN(num)) ? null : num;
+
+        const mirrorCell = document.getElementById(`mirror-${from}-${to}`);
+        if(mirrorCell){
+          const computed = (num && num !== 0) ? (1 / num) : null;
+          mirrorCell.textContent = formatFactor(computed);
+        }
+      });
+    });
+  }
+
+  addUnitBtn.addEventListener('click', ()=>{
+    const code = unitSelect.value;
+    if(!code || units.includes(code)) { unitSelect.value = ''; return; }
+    units.push(code);
+    unitSelect.value = '';
+    renderUnitTags();
+    renderMatrix();
+  });
+
+  renderUnitTags();
+  renderMatrix();
+
+  // ---------- Barcodes ----------
+  const barcodeList = document.getElementById('barcodeList');
+  const addBarcodeBtn = document.getElementById('addBarcodeBtn');
+
+  function createBarcodeRow(){
+    const row = document.createElement('div');
+    row.className = 'barcode-row';
+    row.innerHTML = `
+      <input class="styled-input" type="text" aria-label="Barcode" placeholder="e.g. 8690123456789">
+      <button class="icon-btn" title="Remove barcode">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    `;
+    row.querySelector('.icon-btn').addEventListener('click', ()=> row.remove());
+    return row;
+  }
+
+  addBarcodeBtn.addEventListener('click', ()=>{
+    barcodeList.appendChild(createBarcodeRow());
+  });
+
+  barcodeList.appendChild(createBarcodeRow());
+
+  // ---------- Attributes ----------
+  const attributeSelect = document.getElementById('attributeSelect');
+  const customAttributeName = document.getElementById('customAttributeName');
+  const attributeValue = document.getElementById('attributeValue');
+  const addAttributeBtn = document.getElementById('addAttributeBtn');
+  const attributesTableBody = document.getElementById('attributesTableBody');
+
+  attributeSelect.addEventListener('change', ()=>{
+    const isCustom = attributeSelect.value === '__custom__';
+    customAttributeName.style.display = isCustom ? 'block' : 'none';
+    if(!isCustom) customAttributeName.value = '';
+  });
+
+  function refreshAttributesEmptyState(){
+    if(attributesTableBody.children.length === 0){
+      attributesTableBody.innerHTML = '<tr><td class="attr-empty" colspan="3">No attributes added yet.</td></tr>';
+    }
+  }
+
+  function addAttributeRow(name, value){
+    const emptyRow = attributesTableBody.querySelector('.attr-empty');
+    if(emptyRow) emptyRow.closest('tr').remove();
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(name)}</td>
+      <td>${escapeHtml(value)}</td>
+      <td class="col-remove">
+        <button class="icon-btn" title="Remove attribute">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </td>
+    `;
+    tr.querySelector('.icon-btn').addEventListener('click', ()=>{
+      tr.remove();
+      refreshAttributesEmptyState();
+    });
+    attributesTableBody.appendChild(tr);
+  }
+
+  addAttributeBtn.addEventListener('click', ()=>{
+    const isCustom = attributeSelect.value === '__custom__';
+    const name = isCustom ? customAttributeName.value.trim() : attributeSelect.value;
+    const value = attributeValue.value.trim();
+    if(!name || !value) return;
+
+    addAttributeRow(name, value);
+
+    attributeSelect.value = '';
+    customAttributeName.value = '';
+    customAttributeName.style.display = 'none';
+    attributeValue.value = '';
+  });
+
+  refreshAttributesEmptyState();
+
+  // ---------- Persistent material records and editor state ----------
+  const STORAGE_KEY = 'mm_materials';
+  const fieldIds = ['companySelect','skuNumber','materialCode','materialDescription','valuationMethod','lotSizingRule','volumeValue','volumeUnit','weightValue','weightUnit'];
+  const fields = Object.fromEntries(fieldIds.map(id => [id, document.getElementById(id)]));
+  const mmStatus = document.getElementById('mmStatus');
+  const newMaterialBtn = document.getElementById('newMaterialBtn');
+  const deleteMaterialBtn = document.getElementById('deleteMaterialBtn');
+  const saveMaterialBtn = document.getElementById('saveMaterialBtn');
+  const materialMessage = document.getElementById('materialMessage');
+  const stockSearchBtn = document.getElementById('stockSearchBtn');
+  const stockSearchDialog = document.getElementById('stockSearchDialog');
+  const stockSearchInput = document.getElementById('stockSearchInput');
+  const stockCompanyFilter = document.getElementById('stockCompanyFilter');
+  const stockResultsBody = document.getElementById('stockResultsBody');
+  const stockResultCount = document.getElementById('stockResultCount');
+  const stockPrevPage = document.getElementById('stockPrevPage');
+  const stockNextPage = document.getElementById('stockNextPage');
+  const stockPageLabel = document.getElementById('stockPageLabel');
+  const PAGE_SIZE = 20;
+  let currentMaterialId = null;
+  let selectedSnapshot = null;
+  let cleanFormSnapshot = '';
+  let searchPage = 0;
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  }
+
+  function showMessage(message = '', tone = 'success'){
+    materialMessage.textContent = message;
+    materialMessage.dataset.tone = tone;
+    materialMessage.hidden = !message;
+  }
+
+  function loadMaterials(){
+    let raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); }
+    catch { throw new Error('Browser storage is unavailable. Allow site storage to search or save stocks.'); }
+    if(raw === null) return [];
+    let records;
+    try { records = JSON.parse(raw); }
+    catch { throw new Error('Saved stock data could not be read. Existing data has been kept unchanged.'); }
+    if(!Array.isArray(records) || records.some(record => !record || typeof record !== 'object' || Array.isArray(record) || typeof record.id !== 'string' || !record.id.trim())){
+      throw new Error('Saved stock data has an invalid format. Existing data has been kept unchanged.');
+    }
+    return records;
+  }
+
+  function persistMaterials(records){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    catch { throw new Error('The change could not be saved. Browser storage may be full or unavailable. Your form has been kept.'); }
+  }
+
+  function updateUrl(id){
+    const url = new URL(window.location.href);
+    if(id) url.searchParams.set('id', id);
+    else url.searchParams.delete('id');
+    window.history.replaceState({}, '', url);
+  }
+
+  function setStatus(){
+    mmStatus.textContent = currentMaterialId ? 'Editing: ' + currentMaterialId : 'New Material';
+    mmStatus.classList.toggle('editing', Boolean(currentMaterialId));
+    deleteMaterialBtn.disabled = !currentMaterialId;
+  }
+
+  function collectFormData(){
+    return {
+      company: fields.companySelect.value,
+      sku: fields.skuNumber.value.trim(),
+      materialCode: fields.materialCode.value.trim(),
+      materialDescription: fields.materialDescription.value.trim(),
+      valuationMethod: fields.valuationMethod.value,
+      lotSizingRule: fields.lotSizingRule.value,
+      units: units.slice(),
+      factors: {...factors},
+      barcodes: Array.from(barcodeList.querySelectorAll('input'), input => input.value.trim()).filter(Boolean),
+      volumeValue: fields.volumeValue.value,
+      volumeUnit: fields.volumeUnit.value,
+      weightValue: fields.weightValue.value,
+      weightUnit: fields.weightUnit.value,
+      attributes: Array.from(attributesTableBody.querySelectorAll('tr')).filter(row => !row.querySelector('.attr-empty')).map(row => ({name:row.cells[0].textContent,value:row.cells[1].textContent}))
+    };
+  }
+
+  function hasUnsavedChanges(){
+    return JSON.stringify(collectFormData()) !== cleanFormSnapshot || Boolean(unitSelect.value || attributeSelect.value || customAttributeName.value || attributeValue.value);
+  }
+
+  function assignSelect(select, value){
+    select.querySelectorAll('[data-material-option]').forEach(option => option.remove());
+    const text = String(value ?? '');
+    if(text && !Array.from(select.options).some(option => option.value === text)){
+      const option = new Option(text, text);
+      option.dataset.materialOption = 'true';
+      select.add(option);
+    }
+    select.value = text;
+  }
+
+  function populateForm(record){
+    fields.skuNumber.value = record.sku ?? '';
+    fields.materialCode.value = record.materialCode ?? '';
+    fields.materialDescription.value = record.materialDescription ?? '';
+    fields.volumeValue.value = record.volumeValue ?? '';
+    fields.weightValue.value = record.weightValue ?? '';
+    assignSelect(fields.companySelect, record.company);
+    assignSelect(fields.valuationMethod, record.valuationMethod);
+    assignSelect(fields.lotSizingRule, record.lotSizingRule);
+    assignSelect(fields.volumeUnit, record.volumeUnit);
+    assignSelect(fields.weightUnit, record.weightUnit);
+
+    unitSelect.value = '';
+    units = Array.isArray(record.units) ? [...new Set(record.units.filter(code => Object.hasOwn(unitCatalog, code)))] : [];
+    Object.keys(factors).forEach(key => delete factors[key]);
+    if(record.factors && typeof record.factors === 'object'){
+      for(let i = 0; i < units.length; i++){
+        for(let j = i + 1; j < units.length; j++){
+          const key = units[i] + '|' + units[j];
+          const value = record.factors[key];
+          if(value !== undefined) factors[key] = value === null || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
+        }
+      }
+    }
+    renderUnitTags();
+    renderMatrix();
+
+    barcodeList.replaceChildren();
+    (Array.isArray(record.barcodes) ? record.barcodes : []).forEach(value => {
+      const row = createBarcodeRow();
+      row.querySelector('input').value = String(value ?? '');
+      barcodeList.appendChild(row);
+    });
+    attributeSelect.value = '';
+    customAttributeName.value = '';
+    customAttributeName.style.display = 'none';
+    attributeValue.value = '';
+    attributesTableBody.replaceChildren();
+    (Array.isArray(record.attributes) ? record.attributes : []).filter(attribute => attribute && typeof attribute === 'object').forEach(attribute => addAttributeRow(attribute.name ?? '', attribute.value ?? ''));
+    refreshAttributesEmptyState();
+    document.querySelectorAll('.content input').forEach(input => input.setCustomValidity(''));
+    cleanFormSnapshot = JSON.stringify(collectFormData());
+  }
+
+  function clearSearch(){
+    stockSearchInput.value = '';
+    stockCompanyFilter.replaceChildren(new Option('All companies',''));
+    stockResultsBody.replaceChildren();
+    stockResultCount.textContent = '';
+    stockPageLabel.textContent = '';
+    stockPrevPage.disabled = true;
+    stockNextPage.disabled = true;
+    searchPage = 0;
+  }
+
+  function resetForm(){
+    if(stockSearchDialog.open) stockSearchDialog.close();
+    currentMaterialId = null;
+    selectedSnapshot = null;
+    populateForm({});
+    clearSearch();
+    showMessage();
+    setStatus();
+    updateUrl(null);
+  }
+
+  function openMaterial(record){
+    populateForm(record);
+    currentMaterialId = record.id;
+    selectedSnapshot = JSON.stringify(record);
+    setStatus();
+    updateUrl(record.id);
+    showMessage();
+  }
+
+  // ---------- Search / selection ----------
+  function normalizeSearch(value){
+    return String(value ?? '').replace(/[İı]/g, 'i').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  function refreshCompanyFilter(records){
+    const selected = stockCompanyFilter.value;
+    const companies = [...new Set(records.map(record => String(record.company ?? '')).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+    stockCompanyFilter.replaceChildren(new Option('All companies',''), ...companies.map(company => new Option(company,company)));
+    stockCompanyFilter.value = companies.includes(selected) ? selected : '';
+  }
+
+  function renderStockResults(){
+    stockResultsBody.replaceChildren();
+    let records;
+    try { records = loadMaterials(); }
+    catch(error){
+      const row = stockResultsBody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 5;
+      cell.className = 'stock-empty';
+      cell.textContent = error.message;
+      stockResultCount.textContent = 'Stocks unavailable';
+      stockPageLabel.textContent = '0 / 0';
+      stockPrevPage.disabled = stockNextPage.disabled = true;
+      return;
+    }
+    refreshCompanyFilter(records);
+    const terms = normalizeSearch(stockSearchInput.value).trim().split(/\s+/).filter(Boolean);
+    const filtered = records.filter(record => {
+      if(stockCompanyFilter.value && record.company !== stockCompanyFilter.value) return false;
+      const searchable = normalizeSearch([record.materialCode,record.id,record.materialDescription,record.sku,record.company,...(Array.isArray(record.barcodes) ? record.barcodes : [])].join(' '));
+      return terms.every(term => searchable.includes(term));
+    }).sort((a,b) => String(a.materialCode || a.id).localeCompare(String(b.materialCode || b.id), undefined, {numeric:true}));
+    const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
+    searchPage = Math.min(searchPage, Math.max(0,pageCount - 1));
+    const start = searchPage * PAGE_SIZE;
+    stockResultCount.textContent = filtered.length ? `${filtered.length} stock${filtered.length === 1 ? '' : 's'} found · Showing ${start + 1}–${Math.min(start + PAGE_SIZE,filtered.length)}` : '0 stocks found';
+    stockPageLabel.textContent = `${pageCount ? searchPage + 1 : 0} / ${pageCount}`;
+    stockPrevPage.disabled = searchPage === 0;
+    stockNextPage.disabled = searchPage + 1 >= pageCount;
+    if(!filtered.length){
+      const row = stockResultsBody.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 5;
+      cell.className = 'stock-empty';
+      cell.textContent = records.length ? 'No matching stocks. Try a different search or company.' : 'No stocks saved yet. Close this window, fill in a new material and click Save.';
+      return;
+    }
+    filtered.slice(start,start + PAGE_SIZE).forEach(record => {
+      const row = stockResultsBody.insertRow();
+      row.dataset.stockId = record.id;
+      row.classList.toggle('current-stock', record.id === currentMaterialId);
+      const codeCell = row.insertCell();
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'stock-select';
+      button.textContent = record.materialCode || record.id;
+      button.setAttribute('aria-label', 'Open material ' + (record.materialCode || record.id));
+      if(record.id === currentMaterialId) button.setAttribute('aria-current','true');
+      codeCell.appendChild(button);
+      if(record.id === currentMaterialId){
+        const label = document.createElement('span');
+        label.className = 'stock-selected-label';
+        label.textContent = 'Currently open';
+        codeCell.appendChild(label);
+      }
+      [record.materialDescription,record.sku,record.company,Array.isArray(record.units) ? record.units[0] : ''].forEach(value => {
+        row.insertCell().textContent = String(value ?? '') || '—';
+      });
+      row.addEventListener('click', () => {
+        if(hasUnsavedChanges() && !window.confirm('Open this stock and discard unsaved changes?')) return;
+        try {
+          const latest = loadMaterials().find(item => item.id === record.id);
+          if(!latest){ renderStockResults(); return; }
+          openMaterial(latest);
+          stockSearchDialog.close();
+          clearSearch();
+          fields.materialCode.focus();
+          document.querySelector('.content').scrollTo(0,0);
+        } catch(error){ showMessage(error.message,'error'); }
+      });
+    });
+    document.querySelector('.stock-table-scroll').scrollTop = 0;
+  }
+
+  function openStockSearch(){
+    if(stockSearchDialog.open) return;
+    clearSearch();
+    renderStockResults();
+    stockSearchDialog.showModal();
+    stockSearchInput.focus();
+  }
+  stockSearchBtn.addEventListener('click', openStockSearch);
+  document.getElementById('closeStockSearchBtn').addEventListener('click', () => stockSearchDialog.close());
+  stockSearchInput.addEventListener('input', () => { searchPage = 0; renderStockResults(); });
+  stockCompanyFilter.addEventListener('change', () => { searchPage = 0; renderStockResults(); });
+  stockPrevPage.addEventListener('click', () => { searchPage--; renderStockResults(); });
+  stockNextPage.addEventListener('click', () => { searchPage++; renderStockResults(); });
+  stockSearchInput.addEventListener('keydown', event => {
+    if(event.key === 'ArrowDown'){
+      event.preventDefault();
+      stockResultsBody.querySelector('.stock-select')?.focus();
+    }
+  });
+  stockResultsBody.addEventListener('keydown', event => {
+    if(event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    const buttons = [...stockResultsBody.querySelectorAll('.stock-select')];
+    const index = buttons.indexOf(document.activeElement);
+    if(index < 0) return;
+    event.preventDefault();
+    buttons[Math.max(0,Math.min(buttons.length - 1,index + (event.key === 'ArrowDown' ? 1 : -1)))].focus();
+  });
+  window.addEventListener('storage', event => {
+    if((event.key === STORAGE_KEY || event.key === null) && stockSearchDialog.open) renderStockResults();
+  });
+
+  // ---------- New / Save / Delete ----------
+  newMaterialBtn.addEventListener('click', () => {
+    resetForm();
+    fields.materialCode.focus();
+  });
+
+  saveMaterialBtn.addEventListener('click', () => {
+    showMessage();
+    const data = collectFormData();
+    for(const [field,value,label] of [[fields.materialCode,data.materialCode,'Material code'],[fields.materialDescription,data.materialDescription,'Material description']]){
+      if(!value){ showMessage(label + ' is required.','error'); field.focus(); return; }
+    }
+    for(const input of document.querySelectorAll('.content input[type="number"]')){
+      if(!input.reportValidity()){ showMessage('Check the highlighted numeric value.','error'); return; }
+    }
+    if((data.volumeValue !== '' && !data.volumeUnit) || (data.weightValue !== '' && !data.weightUnit)){
+      showMessage('Select a unit for the volume or weight you entered.','error');
+      (data.volumeValue !== '' && !data.volumeUnit ? fields.volumeUnit : fields.weightUnit).focus();
+      return;
+    }
+    if(unitSelect.value || attributeSelect.value || customAttributeName.value || attributeValue.value){
+      showMessage('Add or clear the pending unit or attribute before saving.','error');
+      (unitSelect.value ? unitSelect : attributeSelect).focus();
+      return;
+    }
+    const newId = data.materialCode.toUpperCase();
+    try {
+      const records = loadMaterials();
+      const existingIndex = currentMaterialId ? records.findIndex(record => record.id === currentMaterialId) : -1;
+      if(currentMaterialId && (existingIndex < 0 || JSON.stringify(records[existingIndex]) !== selectedSnapshot)){
+        showMessage('This stock changed or was deleted in another page. Reopen it from Stock Search before saving.','error');
+        return;
+      }
+      const duplicate = records.some((record,index) => index !== existingIndex && (record.id.trim().toUpperCase() === newId || String(record.materialCode ?? '').trim().toUpperCase() === newId));
+      if(duplicate){ showMessage('This material code already exists. Choose another code or open the existing stock.','error'); fields.materialCode.focus(); return; }
+      const saved = {...(existingIndex >= 0 ? records[existingIndex] : {}),...data,id:newId};
+      if(existingIndex >= 0) records[existingIndex] = saved;
+      else records.push(saved);
+      persistMaterials(records);
+      currentMaterialId = newId;
+      selectedSnapshot = JSON.stringify(saved);
+      cleanFormSnapshot = JSON.stringify(collectFormData());
+      setStatus();
+      updateUrl(newId);
+      showMessage('Material ' + data.materialCode + ' saved.');
+    } catch(error){ showMessage(error.message,'error'); }
+  });
+
+  deleteMaterialBtn.addEventListener('click', () => {
+    if(!currentMaterialId || !window.confirm('Delete material "' + currentMaterialId + '"? This cannot be undone.')) return;
+    try {
+      const records = loadMaterials();
+      const current = records.find(record => record.id === currentMaterialId);
+      if(current && JSON.stringify(current) !== selectedSnapshot){
+        showMessage('This stock changed in another page. Reopen it from Stock Search before deleting.','error');
+        return;
+      }
+      const deletedId = currentMaterialId;
+      persistMaterials(records.filter(record => record.id !== currentMaterialId));
+      resetForm();
+      showMessage('Material ' + deletedId + ' deleted.');
+      fields.materialCode.focus();
+    } catch(error){ showMessage(error.message,'error'); }
+  });
+
+  // Preserve deep links; New removes the selected identity from the URL too.
+  const requestedId = new URLSearchParams(window.location.search).get('id');
+  resetForm();
+  if(requestedId){
+    try {
+      const record = loadMaterials().find(item => item.id === requestedId);
+      if(record) openMaterial(record);
+      else showMessage('The requested stock was not found. Search for another stock or create a new one.','error');
+    } catch(error){ showMessage(error.message,'error'); }
+  }
+
+})();
+</script>
+</body>
+</html>
