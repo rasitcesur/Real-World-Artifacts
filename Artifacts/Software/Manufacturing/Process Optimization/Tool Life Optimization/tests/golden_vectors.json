@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "requirement_id": "REQ-TOOL-LIFE-001",
+  "origin": "Independent hand calculations; deliberately synthetic machining values, not production recommendations.",
+  "requirement_map": {
+    "R01": ["turning_integer_rpm", "milling_indexable", "milling_solid"],
+    "R02": ["turning_integer_rpm", "milling_indexable"],
+    "R03": ["turning_integer_rpm", "milling_indexable", "milling_solid"],
+    "R04": ["turning_integer_rpm", "milling_indexable", "milling_solid"],
+    "R05": ["turning_integer_rpm", "milling_indexable"]
+  },
+  "common_scenario": {
+    "name": "Independent synthetic acceptance vector",
+    "operation": "turning",
+    "currency": "EUR",
+    "material_name": "Synthetic test material",
+    "hardness_label": "Synthetic fixed-condition test",
+    "tool_name": "Synthetic test tool",
+    "coolant": "Fixed test condition",
+    "calibration_kind": "demonstration",
+    "calibration_source": "Hand-calculated synthetic acceptance vector",
+    "diameter_mm": 100.0,
+    "cut_length_mm": 100.0,
+    "passes": 2,
+    "feed_turn_mm_rev": 0.2,
+    "feed_mill_mm_tooth": 0.05,
+    "teeth": 4,
+    "insert_positions": 6,
+    "tool_type": "indexable",
+    "depth_mm": 2.0,
+    "width_mm": 10.0,
+    "specific_force_n_mm2": 1500.0,
+    "v_ref_m_min": 314.1592653589793,
+    "life_ref_min": 10.0,
+    "taylor_exponent": 0.5,
+    "demand_qty": 25,
+    "setup_minutes": 10.0,
+    "noncut_minutes": 0.5,
+    "tool_change_minutes": 4.0,
+    "machine_rate_hour": 60.0,
+    "tool_cost": 6.0,
+    "other_cost_per_part": 2.0,
+    "other_batch_cost": 12.0,
+    "available_minutes": null,
+    "rpm_min": 1.0,
+    "rpm_max": 10000.0,
+    "axis_feed_max_mm_min": 10000.0,
+    "motor_power_kw": 100.0,
+    "efficiency": 0.8,
+    "speed_min": 20.0,
+    "speed_max": 1000.0,
+    "baseline_speed": 314.1592653589793,
+    "speed_resolution": 10.0,
+    "starts": 5
+  },
+  "vectors": [
+    {
+      "name": "turning_integer_rpm",
+      "scenario_overrides": {},
+      "speed_m_min": 314.1592653589793,
+      "arithmetic": [
+        "v = 100*pi m/min and D = 100 mm yield N = 1000 rev/min.",
+        "f = 0.2 mm/rev gives 200 mm/min; 2*100/200 = 1 cut minute per part.",
+        "Pc = (100*pi)*2*0.2*1500/60000 = pi kW; motor = pi/0.8.",
+        "Reference life 10 minutes / 1 cut minute = 10 complete parts per edge.",
+        "25 parts allocate ceil(25/10)=3 edges and 2 between-part changes.",
+        "Batch minutes = 10 + 25*(1+0.5) + 2*4 = 55.5.",
+        "Batch cost = 55.5*(60/60) + 3*6 + 25*2 + 12 = 135.5; unit = 5.42."
+      ],
+      "expected": {
+        "spindle_rpm": 1000.0,
+        "feed_mm_min": 200.0,
+        "cut_minutes": 1.0,
+        "cutting_power_kw": 3.141592653589793,
+        "motor_power_kw": 3.9269908169872414,
+        "predicted_life_minutes": 10.0,
+        "parts_per_tool": 10,
+        "tool_sets": 3,
+        "tool_changes": 2,
+        "batch_minutes": 55.5,
+        "machine_cost_per_part": 2.22,
+        "tooling_cost_per_part": 0.72,
+        "other_cost_per_part": 2.48,
+        "unit_cost": 5.42,
+        "feasible": true
+      }
+    },
+    {
+      "name": "milling_indexable",
+      "scenario_overrides": {
+        "operation": "milling",
+        "diameter_mm": 20.0,
+        "v_ref_m_min": 62.83185307179586,
+        "baseline_speed": 62.83185307179586,
+        "tool_cost": 8.0
+      },
+      "speed_m_min": 62.83185307179586,
+      "arithmetic": [
+        "v = 20*pi m/min and D = 20 mm yield N = 1000 rev/min.",
+        "Effective teeth 4 at fz=0.05 give 200 mm/min; 2*100/200 = 1 cut minute.",
+        "MRR = 2*10*200 = 4000 mm^3/min; Pc = 4000*1500/60000000 = 0.1 kW.",
+        "Life and time allocate 3 sets, with 6 physical insert positions per set.",
+        "Tool cost = 3*6*8 = 144; batch cost = 55.5+144+50+12 = 261.5.",
+        "Unit cost = 261.5/25 = 10.46; changing teeth affects feed, positions affect allocation."
+      ],
+      "expected": {
+        "spindle_rpm": 1000.0,
+        "feed_mm_min": 200.0,
+        "cut_minutes": 1.0,
+        "cutting_power_kw": 0.1,
+        "motor_power_kw": 0.125,
+        "predicted_life_minutes": 10.0,
+        "parts_per_tool": 10,
+        "tool_sets": 3,
+        "tool_changes": 2,
+        "batch_minutes": 55.5,
+        "machine_cost_per_part": 2.22,
+        "tooling_cost_per_part": 5.76,
+        "other_cost_per_part": 2.48,
+        "unit_cost": 10.46,
+        "feasible": true
+      }
+    },
+    {
+      "name": "milling_solid",
+      "scenario_overrides": {
+        "operation": "milling",
+        "diameter_mm": 20.0,
+        "v_ref_m_min": 62.83185307179586,
+        "baseline_speed": 62.83185307179586,
+        "tool_type": "solid",
+        "tool_cost": 80.0
+      },
+      "speed_m_min": 62.83185307179586,
+      "arithmetic": [
+        "Machining quantities match the indexable vector.",
+        "The whole solid cutter is charged once per set: 3*80=240.",
+        "Batch cost = 55.5+240+50+12 = 357.5; unit = 14.30."
+      ],
+      "expected": {
+        "spindle_rpm": 1000.0,
+        "feed_mm_min": 200.0,
+        "cut_minutes": 1.0,
+        "cutting_power_kw": 0.1,
+        "motor_power_kw": 0.125,
+        "predicted_life_minutes": 10.0,
+        "parts_per_tool": 10,
+        "tool_sets": 3,
+        "tool_changes": 2,
+        "batch_minutes": 55.5,
+        "machine_cost_per_part": 2.22,
+        "tooling_cost_per_part": 9.6,
+        "other_cost_per_part": 2.48,
+        "unit_cost": 14.3,
+        "feasible": true
+      }
+    }
+  ]
+}

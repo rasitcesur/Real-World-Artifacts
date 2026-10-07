@@ -1,0 +1,62 @@
+{
+  "requirement": "R07",
+  "checks": [
+    {
+      "check": "desktop_start",
+      "passed": true,
+      "screen": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "check": "turning_optimize",
+      "passed": true,
+      "speed": 188.0,
+      "cost": 3.2863179766366692
+    },
+    {
+      "check": "turning_save_export",
+      "passed": true
+    },
+    {
+      "check": "turning_stale_result_blocked",
+      "passed": true
+    },
+    {
+      "check": "milling_optimize",
+      "passed": true,
+      "speed": 126.0,
+      "cost": 4.379164844640326
+    },
+    {
+      "check": "milling_save_export",
+      "passed": true
+    },
+    {
+      "check": "milling_stale_result_blocked",
+      "passed": true
+    },
+    {
+      "check": "independent_mode_drafts",
+      "passed": true
+    },
+    {
+      "check": "compact_layout_and_all_input_tabs",
+      "passed": true
+    },
+    {
+      "check": "trace_and_model_tabs",
+      "passed": true
+    },
+    {
+      "check": "infeasible_demand_message",
+      "passed": true
+    },
+    {
+      "check": "material_reference_dialog",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

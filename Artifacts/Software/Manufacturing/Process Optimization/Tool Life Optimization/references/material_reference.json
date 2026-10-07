@@ -1,0 +1,13 @@
+{
+  "source": "https://www.sandvik.coromant.com/en-gb/knowledge/materials/workpiece-materials",
+  "retrieved_date": "2026-10-06",
+  "meaning": "Nominal material-condition references. kc1 is reference specific cutting force, not effective kc or a Taylor life constant. These entries do not define universal cutting-speed recommendations.",
+  "materials": [
+    {"name": "Medium-carbon steel, annealed", "code": "P1.2.Z.AN", "hardness": "190 HB", "kc1_n_mm2": 1700, "mc": 0.25},
+    {"name": "Austenitic stainless, annealed", "code": "M1.0.Z.AQ", "hardness": "200 HB", "kc1_n_mm2": 2000, "mc": 0.21},
+    {"name": "Low-tensile grey cast iron, untreated", "code": "K2.1.C.UT", "hardness": "180 HB", "kc1_n_mm2": 900, "mc": 0.28},
+    {"name": "Aged AlSi alloy, Si at most 1%", "code": "N1.2.Z.AG", "hardness": "100 HB", "kc1_n_mm2": 650, "mc": 0.25},
+    {"name": "Commercially pure titanium, untreated", "code": "S4.1.Z.UT", "hardness": "200 HB", "kc1_n_mm2": 1300, "mc": 0.23},
+    {"name": "Hardened steel", "code": "H1.1.Z.HA", "hardness": "50 HRC", "kc1_n_mm2": 3090, "mc": 0.25}
+  ]
+}

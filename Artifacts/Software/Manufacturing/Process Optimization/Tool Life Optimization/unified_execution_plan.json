@@ -1,0 +1,24 @@
+{
+  "uep_id": "UEP-TOOL-LIFE-001-v1",
+  "status": "MERGED",
+  "requirement_id": "REQ-TOOL-LIFE-001",
+  "runtime_version": "1.0.0",
+  "Selected_Canonical_Behaviors": ["FixedConditionTurning", "FixedConditionMilling", "CalibratedTaylorLife", "IntegerBatchEconomics", "HardConstraintFeasibility", "DeterministicHillClimbing"],
+  "Domain_Constraints": ["A-001", "A-002", "A-003", "A-004", "A-005"],
+  "Architecture_Decisions": {
+    "business_semantics": "tool_life_optimizer/engine.py",
+    "search": "tool_life_optimizer/search.py",
+    "desktop_ui": "tool_life_optimizer/ui.py, Python tkinter and canvas",
+    "persistence_and_provenance": "tool_life_optimizer/persistence.py",
+    "runtime_dependencies": "Python standard library including tkinter",
+    "presentation": "one editable local PPTX created with @oai/artifact-tool after software verification"
+  },
+  "Verification_Strategy": "Independent arithmetic vectors, formal model properties, small-domain exhaustive search oracles, GUI interaction and persistence checks, SHA-256 evidence, visual artifact inspection",
+  "Provenance_Trace": [
+    {"source": "human_user", "action": "Approve", "value": "YES to A-001 through A-005", "date": "2026-10-06"},
+    {"source": "machining_research", "action": "Contribute", "result": "Independent turning/milling calibration, discrete tooling and finite-batch demand semantics"},
+    {"source": "market_research", "action": "Contribute", "result": "Grouped parameter workflow, comparison, feasibility and provenance UI"},
+    {"source": "root", "action": "Merge", "result": "No remaining conflicting constraints; committed requirements R01 through R10"}
+  ],
+  "Compensation_History": []
+}

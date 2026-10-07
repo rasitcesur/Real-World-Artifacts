@@ -1,0 +1,3 @@
+﻿role,operation,currency,speed_m_min,spindle_rpm,feed_mm_min,cut_minutes,predicted_life_minutes,parts_per_tool,tool_sets,tool_changes,batch_minutes,cutting_power_kw,motor_power_kw,unit_cost,machine_cost_per_part,tooling_cost_per_part,other_cost_per_part,feasible,violations
+baseline,turning,CU,180.0,954.9296585513721,190.98593171027443,0.5235987755982988,30.0,57,4,3,233.71975511965974,2.16,2.5411764705882356,3.308598775598299,1.1685987755982987,0.14,2.0,True,
+selected,turning,CU,188.0,997.3709767092109,199.4741953418422,0.501317976636669,25.210408221357095,50,4,3,229.26359532733383,2.256,2.6541176470588232,3.2863179766366692,1.1463179766366691,0.14,2.0,True,
